@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+# mark-tests-viewed — mark every test-related file in a GitHub PR as "Viewed"
+# for your GitHub account, so the PR diff shows only implementation files.
+# With --invert it hides everything EXCEPT tests instead (tests-only review).
+#
+# Usage:
+#   mark-tests-viewed [--repo owner/name] [--dry-run] [--undo] [--invert] <pr-number> [extra-regex...]
+#
+# Examples:
+#   mark-tests-viewed 20537                  # from inside the repo checkout
+#   mark-tests-viewed --repo cubbit/cubbit 20537
+#   mark-tests-viewed --dry-run 20537        # list the files it would mark
+#   mark-tests-viewed --invert 20537         # hide IMPLEMENTATION, leave tests to review
+#   mark-tests-viewed --undo 20537           # put the marked files back in your queue
+#   mark-tests-viewed 20537 'gotestlib'      # also mark paths matching an extra regex
+#
+# A file counts as a test if its basename matches *.spec.*, *.test.*, *.snap,
+# *_test.go, *_test.py, *_test.cc, *_test.cpp, *.test.cc or *.test.cpp, or its
+# path contains __tests__, __mocks__, __snapshots__, __pacts__, pacts/, test/,
+# tests/, testing/, e2e/, test-utils or testutils. Extra ERE regexes (matched
+# against the whole path) extend the defaults.
+#
+# Notes:
+#   - The "Viewed" state is per GitHub account: the one logged into `gh`.
+#   - Idempotent. New commits can bring files back; just re-run.
+
+set -uo pipefail
+
+REPO="" PR="" DRY_RUN=0 UNDO=0 INVERT=0
+EXTRA_PATTERNS=()
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      grep '^# ' "$0" | cut -c3-; exit 0 ;;
+    --repo)
+      [ $# -ge 2 ] || die "--repo needs a value"
+      REPO="$2"; shift 2 ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --undo)    UNDO=1; shift ;;
+    --invert)  INVERT=1; shift ;;
+    --*)       die "unknown flag: $1 (see --help)" ;;
+    *)
+      if [ -z "$PR" ]; then PR="$1"; else EXTRA_PATTERNS+=("$1"); fi
+      shift ;;
+  esac
+done
+
+[ -n "$PR" ] || die "missing PR number (see --help)"
+[[ "$PR" =~ ^[0-9]+$ ]] || die "PR number expected, got: $PR"
+command -v gh >/dev/null 2>&1 || die "gh CLI required (https://cli.github.com)"
+
+if [ -z "$REPO" ]; then
+  REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)" \
+    || die "cannot resolve repo from current directory; pass --repo owner/name"
+fi
+
+PR_ID="$(gh pr view "$PR" --repo "$REPO" --json id -q .id 2>/dev/null)" \
+  || die "cannot find PR $PR in $REPO"
+[ -n "$PR_ID" ] || die "cannot find PR $PR in $REPO"
+
+is_test_file() {
+  local p="$1" base="$1" pat=""
+  base="${base##*/}"
+  case "$base" in
+    *.spec.*|*.test.*|*.snap) return 0 ;;
+    *_test.go|*_test.py|*_test.cc|*_test.cpp|*_test.cxx|*.test.cc|*.test.cpp) return 0 ;;
+  esac
+  case "$p" in
+    *__tests__/*|*__mocks__/*|*__snapshots__/*|*__pacts__/*|*/pacts/*|pacts/*) return 0 ;;
+    */test/*|*/tests/*|*/testing/*|*/e2e/*|*/test-utils/*|*/testutils/*) return 0 ;;
+    test/*|tests/*|testing/*|e2e/*|test-utils/*|testutils/*) return 0 ;;
+  esac
+  if [ ${#EXTRA_PATTERNS[@]} -gt 0 ]; then
+    for pat in "${EXTRA_PATTERNS[@]}"; do
+      [[ "$p" =~ $pat ]] && return 0
+    done
+  fi
+  return 1
+}
+
+gq_escape() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'; }
+
+files_out="$(gh api "repos/$REPO/pulls/$PR/files?per_page=100" \
+  --paginate --jq '.[].filename')" || die "cannot list files of PR $PR"
+[ -n "$files_out" ] || die "PR $PR has no changed files"
+mapfile -t all_files <<< "$files_out"
+
+test_files=()
+for f in "${all_files[@]}"; do
+  if [ "$INVERT" -eq 1 ]; then
+    is_test_file "$f" || test_files+=("$f")
+  else
+    is_test_file "$f" && test_files+=("$f")
+  fi
+done
+
+MUTATION="markFileAsViewed"
+VERB="Marked"
+LVERB="mark"
+TARGET_DESC="test files"
+if [ "$INVERT" -eq 1 ]; then
+  TARGET_DESC="implementation files (tests left visible)"
+fi
+if [ "$UNDO" -eq 1 ]; then
+  MUTATION="unmarkFileAsViewed"
+  VERB="Unmarked"
+  LVERB="unmark"
+fi
+
+if [ ${#test_files[@]} -eq 0 ]; then
+  echo "No $TARGET_DESC in $REPO#$PR — nothing to do."
+  exit 0
+fi
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  printf '%s\n' "${test_files[@]}"
+  echo "--"
+  echo "DRY RUN: would $LVERB ${#test_files[@]} of ${#all_files[@]} files in $REPO#$PR"
+  exit 0
+fi
+
+echo "$( [ "$UNDO" -eq 1 ] && echo Unmarking || echo Marking ) ${#test_files[@]} $TARGET_DESC on $REPO#$PR ..."
+
+total=${#test_files[@]}
+batch=25
+fail=0
+for ((start=0; start<total; start+=batch)); do
+  qfile="$(mktemp)"
+  {
+    printf 'mutation {\n'
+    for ((i=start; i<start+batch && i<total; i++)); do
+      printf '  f%d: %s(input: {pullRequestId: "%s", path: "%s"}) { clientMutationId }\n' \
+        "$i" "$MUTATION" "$PR_ID" "$(gq_escape "${test_files[i]}")"
+    done
+    printf '}\n'
+  } > "$qfile"
+  resp="$(gh api graphql -f query="$(cat "$qfile")")" || fail=1
+  rm -f "$qfile"
+  if [ -n "${resp:-}" ] && printf '%s' "$resp" | grep -q '"errors"'; then
+    printf '%s\n' "$resp" >&2
+    fail=1
+  fi
+done
+
+if [ "$fail" -ne 0 ]; then
+  echo "Some batches failed — see GraphQL errors above." >&2
+  exit 1
+fi
+
+# Summary: what is left in your review queue on this PR
+owner="${REPO%%/*}" name="${REPO#*/}"
+states="$(gh api graphql \
+  -f query='query($owner: String!, $name: String!, $number: Int!) {
+    repository(owner: $owner, name: $name) {
+      pullRequest(number: $number) {
+        files(first: 100) { nodes { path viewerViewedState } }
+      }
+    }
+  }' \
+  -F owner="$owner" -F name="$name" -F number="$PR" \
+  --jq '.data.repository.pullRequest.files.nodes[] | "\(.viewerViewedState) \(.path)"')"
+
+viewed=0 inqueue=0
+remaining=()
+while read -r state path; do
+  if [ "$state" = "VIEWED" ]; then
+    viewed=$((viewed+1))
+  else
+    inqueue=$((inqueue+1))
+    remaining+=("$path")
+  fi
+done <<< "$states"
+
+echo "$VERB ${#test_files[@]} $TARGET_DESC."
+echo "$REPO#$PR — VIEWED: $viewed   still in your queue: $inqueue"
+if [ "$inqueue" -gt 0 ] && [ "$inqueue" -le 40 ]; then
+  printf '  %s\n' "${remaining[@]}"
+fi
+echo "New pushes can bring files back — just re-run."

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mark Tests Viewed</title>
+<style>
+  html, body { margin: 0; font: 13px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; color: #1f2328; }
+  .wrap { width: 280px; padding: 14px 16px 12px; box-sizing: border-box; }
+  h1 { font-size: 14px; margin: 0 0 10px; }
+  .grp { display: block; padding: 8px 10px; border: 1px solid #d1d9e0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
+  .grp:hover { background: #f3f4f6; }
+  .grp.on { border-color: #1f883d; background: #dafbe1; }
+  .grp input { margin-right: 6px; }
+  .sub { color: #59636e; font-size: 12px; display: block; margin: 2px 0 0 20px; }
+  .hint { color: #59636e; font-size: 11px; margin: 10px 2px 0; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Mark Tests Viewed</h1>
+    <label class="grp">
+      <input type="radio" name="mode" value="hide-tests">
+      <b>Hide test files</b>
+      <span class="sub">Tests marked as Viewed — implementation visible</span>
+    </label>
+    <label class="grp">
+      <input type="radio" name="mode" value="hide-implementation">
+      <b>Hide implementation files</b>
+      <span class="sub">Everything else marked as Viewed — tests visible</span>
+    </label>
+    <p class="hint">Applies immediately to open GitHub tabs and to every PR you open. Manual per-file clicks are respected until the page reloads.</p>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
