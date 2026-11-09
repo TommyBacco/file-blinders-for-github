@@ -1,4 +1,4 @@
-# Mark Tests Viewed
+# File Blinders for GitHub
 
 Personal Firefox extension + CLI that hide one half of a GitHub pull request
 so you can review the other half: on PR **Files changed** pages, the
@@ -15,7 +15,7 @@ no tracking, and the only extension API used is local storage for the mode.
 | `manifest.json` | MV3 manifest — id, `storage` permission, popup, content script |
 | `content.js` | the entire page-side logic (single auditable file) |
 | `popup.html` + `popup.js` | toolbar popup that sets the mode |
-| `package.sh` | builds `mark-tests-viewed.xpi` (for temporary loads) |
+| `package.sh` | builds `file-blinders-for-github.xpi` (for temporary loads) |
 | `sign.sh` | stages the shipped files, uploads + signs a new version on your AMO account (unlisted); reads `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET` from the environment |
 | `verify.js` | runs the shipped classifier against a real PR's changed files (parity check vs the CLI) |
 | `cli/mark-tests-viewed` | terminal companion: marks test files (or, with `--invert`, everything else) as Viewed via GitHub's GraphQL API using `gh` |

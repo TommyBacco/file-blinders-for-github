@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Mark Tests Viewed (personal)",
-  "version": "1.0.2",
-  "description": "Automatically marks test files (or implementation files, toggleable) as Viewed on GitHub PR Files-changed pages. No network access.",
+  "name": "File Blinders for GitHub",
+  "version": "1.1.0",
+  "description": "Reviews one half of a GitHub PR: marks test files (or implementation files, toggleable) as Viewed so the other half stays in view. No network access.",
   "browser_specific_settings": {
     "gecko": {
       "id": "{72ec9cd0-adc9-4036-80cf-98724d2b0504}",
@@ -21,7 +21,7 @@
     "https://github.com/*"
   ],
   "action": {
-    "default_title": "Mark Tests Viewed — pick which files to hide",
+    "default_title": "File Blinders for GitHub — pick which files to hide",
     "default_popup": "popup.html"
   },
   "content_scripts": [

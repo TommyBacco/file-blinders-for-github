@@ -1,5 +1,5 @@
 'use strict';
-// Popup for Mark Tests Viewed — reads and writes exactly one storage key
+// Popup for File Blinders for GitHub — reads and writes exactly one storage key
 // ("markTestsViewedMode"). No network access, no other extension APIs.
 
 const MODE_KEY = 'markTestsViewedMode';
