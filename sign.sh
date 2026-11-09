@@ -31,6 +31,11 @@ cp -r icons "$stage/"
 # web-ext reads WEB_EXT_API_KEY / WEB_EXT_API_SECRET on its own.
 channel="${WEB_EXT_CHANNEL:-unlisted}"
 case "$channel" in unlisted|listed) ;; *) echo "WEB_EXT_CHANNEL must be listed or unlisted" >&2; exit 1 ;; esac
-npx --yes web-ext sign --source-dir "$stage" --channel "$channel"
+# Listed submissions need add-on metadata (categories, summary, description,
+# license, ...). amo-metadata.json is passed through when present.
+amo_meta=()
+if [ -f amo-metadata.json ]; then amo_meta=(--amo-metadata amo-metadata.json); fi
+
+npx --yes web-ext sign --source-dir "$stage" --channel "$channel" "${amo_meta[@]}"
 
 echo "Signed ($channel) file saved under $PWD/web-ext-artifacts/ — install it via about:addons → Install Add-on From File."
