@@ -1,0 +1,23 @@
+{
+  "categories": {
+    "firefox": [
+      "web-development"
+    ]
+  },
+  "summary": {
+    "en-US": "Reviews one half of a GitHub pull request: marks test files (or implementation files) as Viewed so the other half stays visible."
+  },
+  "description": {
+    "en-US": "Reviews one half of a GitHub pull request at a time.\n\nOn a PR's Files changed page the extension clicks GitHub's own per-file \"Viewed\" button for the file group you pick in the toolbar popup: test files by default, or every non-test file in \"hide implementation\" mode. Switching modes reconciles the open PR immediately, so the half you want to review is always the one left on screen.\n\nThe mode is stored in the extension's own local storage and survives reloads. Manual per-file clicks always win until the page reloads.\n\nNo network access, no cookies, no tracking, no background page, no remote code. The only extension API used is local storage, and everything runs on https://github.com/pull/*/files pages.\n\nA terminal companion CLI is included in the source repository."
+  },
+  "license": "MIT",
+  "homepage": {
+    "en-US": "https://github.com/TommyBacco/file-blinders-for-github"
+  },
+  "support_url": {
+    "en-US": "https://github.com/TommyBacco/file-blinders-for-github/issues"
+  },
+  "version": {
+    "license": "MIT"
+  }
+}
