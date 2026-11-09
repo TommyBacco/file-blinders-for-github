@@ -1,3 +1,7 @@
 # build artifacts
 file-blinders-for-github.xpi
 web-ext-artifacts/
+
+# local secrets (AMO API credentials)
+.env.local
+.env
