@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "File Blinders for GitHub",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Reviews one half of a GitHub PR: marks test files (or implementation files, toggleable) as Viewed so the other half stays in view. No network access.",
   "browser_specific_settings": {
     "gecko": {

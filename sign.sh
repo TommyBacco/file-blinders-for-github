@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# Signs and uploads a new (unlisted) version of the extension to
-# addons.mozilla.org. Credentials come from the environment so they never
-# appear in shell history or this file:
+# Signs and uploads a new version of the extension to addons.mozilla.org.
+# Credentials come from the environment so they never appear in shell
+# history or this file:
 #
 #   WEB_EXT_API_KEY=… WEB_EXT_API_SECRET=… ./sign.sh
+#
+# Channel: unlisted by default (self-distributed, no public AMO page). Set
+# WEB_EXT_CHANNEL=listed to submit a publicly listed version, which requires
+# a completed product page and passes human review:
+#
+#   WEB_EXT_CHANNEL=listed ./sign.sh
 #
 # Generate credentials at https://addons.mozilla.org/developers/addon/api/key/
 # (generating new credentials invalidates previous ones).
@@ -23,6 +29,8 @@ cp manifest.json content.js popup.html popup.js README.md "$stage/"
 cp -r icons "$stage/"
 
 # web-ext reads WEB_EXT_API_KEY / WEB_EXT_API_SECRET on its own.
-npx --yes web-ext sign --source-dir "$stage" --channel unlisted
+channel="${WEB_EXT_CHANNEL:-unlisted}"
+case "$channel" in unlisted|listed) ;; *) echo "WEB_EXT_CHANNEL must be listed or unlisted" >&2; exit 1 ;; esac
+npx --yes web-ext sign --source-dir "$stage" --channel "$channel"
 
-echo "Signed file saved under $PWD/web-ext-artifacts/ — install it via about:addons → Install Add-on From File."
+echo "Signed ($channel) file saved under $PWD/web-ext-artifacts/ — install it via about:addons → Install Add-on From File."
