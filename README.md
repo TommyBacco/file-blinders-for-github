@@ -64,7 +64,8 @@ On any PR Files-changed page, open DevTools:
 ## Install
 
 * **Temporary (until browser restart)**: `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on…* → select `manifest.json` or the built `.xpi` (`./package.sh`).
-* **Permanent (release Firefox)**: sign on your own (free) AMO account — unlisted/self-distributed — then `about:addons` → ⚙️ → *Install Add-on From File*. Installing a newer signed file upgrades in place; reload your GitHub tab afterwards (open tabs keep the old script).
+* **Permanent (release Firefox)**: download the signed `.xpi` from [Releases](https://github.com/TommyBacco/file-blinders-for-github/releases/latest), then `about:addons` → ⚙️ → *Install Add-on From File*. Installing a newer signed file upgrades in place; reload your GitHub tab afterwards (open tabs keep the old script).
+  The add-on is signed on AMO as **unlisted**, so there is no public AMO page — GitHub Releases is the install channel. To sign a build yourself, see *Releasing a new version* below.
 * Chrome works too: `chrome://extensions` → Developer mode → *Load unpacked* (this repo root).
 
 ## CLI quick start
