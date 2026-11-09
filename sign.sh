@@ -20,6 +20,7 @@ cd "$(dirname "$0")"
 stage="$(mktemp -d)"
 trap 'rm -rf "$stage"' EXIT
 cp manifest.json content.js popup.html popup.js README.md "$stage/"
+cp -r icons "$stage/"
 
 # web-ext reads WEB_EXT_API_KEY / WEB_EXT_API_SECRET on its own.
 npx --yes web-ext sign --source-dir "$stage" --channel unlisted

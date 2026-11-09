@@ -1,4 +1,4 @@
-// mark-tests-viewed — personal Firefox content script.
+// File Blinders for GitHub — personal Firefox content script.
 //
 // What it does: on GitHub pull-request "Files changed" pages, finds each
 // file's own "Not Viewed" toggle and clicks it for the file group selected

@@ -1,4 +1,4 @@
-# Mark Tests Viewed
+# File Blinders for GitHub
 
 Personal Firefox extension + CLI that hide one half of a GitHub pull request
 so you can review the other half: on PR **Files changed** pages, the
@@ -15,7 +15,8 @@ no tracking, and the only extension API used is local storage for the mode.
 | `manifest.json` | MV3 manifest — id, `storage` permission, popup, content script |
 | `content.js` | the entire page-side logic (single auditable file) |
 | `popup.html` + `popup.js` | toolbar popup that sets the mode |
-| `package.sh` | builds `mark-tests-viewed.xpi` (for temporary loads) |
+| `icons/icon-*.png` | toolbar / add-ons list / AMO listing icon (16–128 px) |
+| `package.sh` | builds `file-blinders-for-github.xpi` (for temporary loads) |
 | `sign.sh` | stages the shipped files, uploads + signs a new version on your AMO account (unlisted); reads `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET` from the environment |
 | `verify.js` | runs the shipped classifier against a real PR's changed files (parity check vs the CLI) |
 | `cli/mark-tests-viewed` | terminal companion: marks test files (or, with `--invert`, everything else) as Viewed via GitHub's GraphQL API using `gh` |
@@ -63,7 +64,8 @@ On any PR Files-changed page, open DevTools:
 ## Install
 
 * **Temporary (until browser restart)**: `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on…* → select `manifest.json` or the built `.xpi` (`./package.sh`).
-* **Permanent (release Firefox)**: sign on your own (free) AMO account — unlisted/self-distributed — then `about:addons` → ⚙️ → *Install Add-on From File*. Installing a newer signed file upgrades in place; reload your GitHub tab afterwards (open tabs keep the old script).
+* **Permanent (release Firefox)**: download the signed `.xpi` from [Releases](https://github.com/TommyBacco/file-blinders-for-github/releases/latest), then `about:addons` → ⚙️ → *Install Add-on From File*. Installing a newer signed file upgrades in place; reload your GitHub tab afterwards (open tabs keep the old script).
+  The add-on is signed on AMO as **unlisted**, so there is no public AMO page — GitHub Releases is the install channel. To sign a build yourself, see *Releasing a new version* below.
 * Chrome works too: `chrome://extensions` → Developer mode → *Load unpacked* (this repo root).
 
 ## CLI quick start
