@@ -90,7 +90,7 @@ the CLI in this repo, re-run the `install` line to update `~/.local/bin/`.
 
 1. Edit `content.js` / `popup.html` / `popup.js`, and bump `"version"` in `manifest.json` (AMO requires a strictly newer number).
 2. `./package.sh` to rebuild the local `.xpi`, and optionally check classifier parity: `node verify.js <owner/repo> <pr-number>`.
-3. `WEB_EXT_API_KEY=… WEB_EXT_API_SECRET=… ./sign.sh` — stages the shipped files, uploads, and signs on your AMO account (unlisted). The signed file lands in `web-ext-artifacts/`.
+3. `WEB_EXT_API_KEY=… WEB_EXT_API_SECRET=… ./sign.sh` — stages the shipped files, uploads, and signs on your AMO account. The signed file lands in `web-ext-artifacts/`. Set `WEB_EXT_CHANNEL=listed` to submit a publicly listed version instead of the default `unlisted` one (a listed submission needs a completed product page on AMO and passes human review).
 4. `about:addons` → ⚙️ → *Install Add-on From File* → the new signed file → reload your GitHub tab.
 
 ## Known conservative skips
